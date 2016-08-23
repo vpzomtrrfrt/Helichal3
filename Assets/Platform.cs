@@ -30,6 +30,8 @@ public class Platform : MonoBehaviour {
 		}
 	}
 
+	private float y;
+
 	void Awake() {
 		platforms.Add (this);
 	}
@@ -39,11 +41,20 @@ public class Platform : MonoBehaviour {
 		if (_x == 0) {
 			x = 0;
 		}
+		y = transform.position.y;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		transform.localPosition = new Vector3 (transform.position.x, transform.position.y - speed, transform.position.z);
+		if (GameManager.instance.Running) {
+			y -= speed;
+			transform.localPosition = new Vector3 (transform.position.x, y, transform.position.z);
+			if (y + transform.localScale.y / 2 < GameManager.instance.screenBottom) {
+				Destroy (gameObject);
+				GameManager.instance.Score++;
+				platforms.Remove (this);
+			}
+		}
 	}
 
 
@@ -53,7 +64,7 @@ public class Platform : MonoBehaviour {
 		Platform lastPlatform = platforms [platforms.Count - 1];
 		if (lastPlatform.transform.position.y < GameManager.instance.screenTop) {
 			float npx = UnityEngine.Random.value * screenWidth*2/3-screenWidth/2+screenWidth/6;
-			float dsc = (GameManager.instance.score + platforms.Count) / 200;
+			float dsc = (GameManager.instance.Score + platforms.Count) / 200;
 			float dist = Math.Abs (npx - lastPlatform.x);
 			float playerPart = 1 - dsc/10;
 			float distPart = dist / (Player.SPEED * 5);
