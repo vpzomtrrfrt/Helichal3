@@ -11,7 +11,7 @@ public class Pupil : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		float tilt = GameManager.instance.tilt;
+		float tilt = GameManager.instance.Tilt;
 		Transform transform = GetComponent<Transform> ();
 		float x = tilt/4;
 		float y = (1 - Math.Abs(tilt)) / 5;
