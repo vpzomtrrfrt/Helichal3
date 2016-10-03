@@ -25,12 +25,4 @@ public class Player : MonoBehaviour {
 			transform.localPosition = new Vector3 (x, transform.position.y, transform.position.z);
 		}
 	}
-
-	public void OnCollisionEnter(Collision col) {
-		Debug.Log ("collision?");
-		if (col.gameObject.GetComponent<Deadly> () != null) {
-			Debug.Log ("YOU SHOULD BE DEAD");
-			GameManager.instance.YouDied ();
-		}
-	}
 }

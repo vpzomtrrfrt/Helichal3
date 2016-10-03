@@ -14,7 +14,12 @@ public class Pupil : MonoBehaviour {
 		float tilt = GameManager.instance.Tilt;
 		Transform transform = GetComponent<Transform> ();
 		float x = tilt/4;
-		float y = (1 - Math.Abs(tilt)) / 5;
+		float y;
+		if (GameManager.instance.State != GameManager.GameState.MAIN_MENU) {
+			y = (1 - Math.Abs (tilt)) / 5;
+		} else {
+			y = 1 / 5;
+		}
 		float z = transform.position.z;
 		transform.localPosition = new Vector3 (x, y, z);
 	}

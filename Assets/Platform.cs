@@ -61,18 +61,37 @@ public class Platform : MonoBehaviour {
 	public static void Generate ()
 	{
 		float screenWidth = GameManager.instance.width;
-		Platform lastPlatform = platforms [platforms.Count - 1];
-		if (lastPlatform.transform.position.y < GameManager.instance.screenTop) {
-			float npx = UnityEngine.Random.value * screenWidth*2/3-screenWidth/2+screenWidth/6;
-			float dsc = (GameManager.instance.Score + platforms.Count) / 200;
-			float dist = Math.Abs (npx - lastPlatform.x);
-			float playerPart = 1 - dsc/10;
-			float distPart = dist / (Player.SPEED * 5);
-			float randomPart = UnityEngine.Random.value / 6;
-			Platform platform = ((GameObject)Instantiate (GameManager.instance.platformPrefab)).GetComponent<Platform> ();
-			float nph = lastPlatform.transform.position.y + Math.Max (platform.transform.localScale.y, Math.Min (playerPart + distPart + randomPart, 12));
-			platform.transform.localPosition = new Vector3 (platform.transform.position.x, nph, platform.transform.position.z);
-			platform.x = npx;
+		if (platforms.Count > 0) {
+			Platform lastPlatform = platforms [platforms.Count - 1];
+			if (lastPlatform.transform.position.y < GameManager.instance.screenTop) {
+				float npx = UnityEngine.Random.value * screenWidth * 2 / 3 - screenWidth / 2 + screenWidth / 6;
+				float dsc = (GameManager.instance.Score + platforms.Count) / 200;
+				float dist = Math.Abs (npx - lastPlatform.x);
+				float playerPart = 1 - dsc / 10;
+				float distPart = dist / (Player.SPEED * 5);
+				float randomPart = UnityEngine.Random.value / 6;
+				Platform platform = Create ();
+				float nph = lastPlatform.transform.position.y + Math.Max (platform.transform.localScale.y, Math.Min (playerPart + distPart + randomPart, 12));
+				platform.transform.localPosition = new Vector3 (platform.transform.position.x, nph, platform.transform.position.z);
+				platform.x = npx;
+			}
+		} else {
+			Platform platform = Create ();
+			platform.transform.localPosition = new Vector3 (0, 3, 0);
 		}
+	}
+
+	public static void ClearPlatforms ()
+	{
+		while (platforms.Count > 0) {
+			Platform platform = platforms [0];
+			platforms.Remove (platform);
+			Destroy (platform.gameObject);
+		}
+	}
+
+	private static Platform Create ()
+	{
+		return ((GameObject)Instantiate (GameManager.instance.platformPrefab)).GetComponent<Platform> ();
 	}
 }
