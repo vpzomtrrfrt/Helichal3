@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour
 {
 	public enum GameState
 	{
 		GAME_STARTING,
-
+		MODE_MENU,
 		INGAME,
 		DIED,
 		MAIN_MENU
@@ -25,6 +26,7 @@ public class GameManager : MonoBehaviour
 	public GameObject platformPrefab;
 	public GameObject deathMenu;
 	public GameObject mainMenu;
+	public GameObject modeMenu;
 	public GameObject gameOverlay;
 
 	public Text scoreText;
@@ -49,10 +51,9 @@ public class GameManager : MonoBehaviour
 	public Vector3 menuPlayerScale;
 	public Vector3 startPlayerScale;
 
-	public Vector3 sourcePosition;
-	public Vector3 sourceScale;
-
 	public bool newHighScore = false;
+
+	private float lastFrameTime;
 
 	private int _score = 0;
 
@@ -109,13 +110,13 @@ public class GameManager : MonoBehaviour
 				gameOverlay.SetActive (false);
 			}
 			if (value == GameState.MAIN_MENU) {
-				mainMenu.SetActive (true);
-				sourcePosition = player.transform.position;
-				sourceScale = player.transform.localScale;
 				Platform.ClearPlatforms ();
-			} else {
-				mainMenu.SetActive (false);
+				if(lastState != GameState.MODE_MENU) {
+					modeMenu.transform.localPosition = new Vector3 (((RectTransform)modeMenu.transform).rect.width, 0, 0);
+				}
 			}
+			mainMenu.SetActive (value == GameState.MAIN_MENU || value == GameState.MODE_MENU);
+			modeMenu.SetActive (value == GameState.MAIN_MENU || value == GameState.MODE_MENU);
 			lastStateSwitch = Time.time;
 		}
 	}
@@ -148,11 +149,13 @@ public class GameManager : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+		if (lastFrameTime == 0) {
+			lastFrameTime = Time.time;
+		}
 		if (Running) {
 			Platform.Generate ();
 		} else if (State == GameState.MAIN_MENU) {
 			RectTransform transform = titleText.GetComponent<RectTransform> ();
-			Rect rect = transform.rect;
 			if (transform.position.x < -2) {
 				titleTextSpeed = Mathf.Abs (titleTextSpeed);
 			} else if (transform.position.x > 2) {
@@ -160,13 +163,19 @@ public class GameManager : MonoBehaviour
 			}
 			transform.position += new Vector3 (titleTextSpeed, 0);
 			lerpTo (menuPlayerPosition, menuPlayerScale, player.transform);
+			lerpTo (Vector3.zero, mainMenu.transform, gameStartSpeed);
+			lerpTo (new Vector3 (((RectTransform)modeMenu.transform).rect.width, 0, 0), modeMenu.transform, gameStartSpeed);
 		} else if (State == GameState.GAME_STARTING) {
 			player.transform.localRotation = Quaternion.identity;
-			float time = lerpTo (startPlayerPosition, startPlayerScale, player.transform, lastState==GameState.MAIN_MENU?gameStartSpeed:gameStartSpeed/3);
+			float time = lerpTo (startPlayerPosition, startPlayerScale, player.transform, lastState == GameState.MODE_MENU ? gameStartSpeed : gameStartSpeed / 3);
 			if (time >= 1) {
 				State = GameState.INGAME;
 			}
+		} else if (State == GameState.MODE_MENU) {
+			lerpTo (new Vector3 (-((RectTransform)mainMenu.transform).rect.width, 0, 0), mainMenu.transform, gameStartSpeed);
+			lerpTo (Vector3.zero, modeMenu.transform, gameStartSpeed);
 		}
+		lastFrameTime = Time.time;
 	}
 
 	private float keyTilt ()
@@ -191,9 +200,11 @@ public class GameManager : MonoBehaviour
 		State = GameState.GAME_STARTING;
 		Score = 0;
 		Platform.ClearPlatforms ();
-		sourcePosition = player.transform.position;
-		sourceScale = player.transform.localScale;
 		newHighScore = false;
+	}
+
+	public void SwitchState(string state) {
+		SwitchState ((GameState)Enum.Parse (typeof(GameState), state));
 	}
 
 	public void SwitchState(GameState state) {
@@ -208,10 +219,16 @@ public class GameManager : MonoBehaviour
 		return lerpTo (position, scale, transform, gameStartSpeed);
 	}
 
+	private float lerpTo(Vector3 position, Transform transform, float speed) {
+		return lerpTo (position, transform.localScale, transform, speed);
+	}
+
 	private float lerpTo(Vector3 position, Vector3 scale, Transform transform, float speed) {
 		float t = (Time.time - lastStateSwitch)/speed;
-		transform.localPosition = Vector3.Lerp (sourcePosition, position, t);
-		transform.localScale = Vector3.Lerp (sourceScale, scale, t);
+		float lastT = (lastFrameTime - lastStateSwitch) / speed;
+		float toPass = (t - lastT)/(1-lastT);
+		transform.localPosition = Vector3.Lerp (transform.localPosition, position, toPass);
+		transform.localScale = Vector3.Lerp (transform.localScale, scale, toPass);
 		return t;
 	}
 }
