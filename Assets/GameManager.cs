@@ -101,6 +101,8 @@ public class GameManager : MonoBehaviour
 			} else {
 				deathMenu.SetActive (false);
 			}
+			player.deadEyes.SetActive (value == GameState.DIED);
+			player.eyes.SetActive (value != GameState.DIED);
 			if (value == GameState.INGAME) {
 				gameOverlay.SetActive (true);
 			} else {

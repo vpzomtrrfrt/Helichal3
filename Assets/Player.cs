@@ -5,6 +5,9 @@ public class Player : MonoBehaviour {
 
 	public static float SPEED = 0.2f;
 
+	public GameObject eyes;
+	public GameObject deadEyes;
+
 	// Use this for initialization
 	void Start () {
 	
