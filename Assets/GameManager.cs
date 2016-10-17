@@ -14,11 +14,22 @@ public class GameManager : MonoBehaviour
 		MAIN_MENU
 	}
 
+	public enum GameMode {
+		NORMAL,
+		FREE_FLY
+	}
+
 	public static GameManager instance;
 
 	public float Tilt {
 		get {
 			return keyTilt () + Input.acceleration.x;
+		}
+	}
+
+	public float TiltY {
+		get {
+			return keyTiltY () + Input.acceleration.y;
 		}
 	}
 
@@ -28,6 +39,8 @@ public class GameManager : MonoBehaviour
 	public GameObject mainMenu;
 	public GameObject modeMenu;
 	public GameObject gameOverlay;
+
+	public GameObject modeButtonPrefab;
 
 	public Text scoreText;
 	public Text deathScoreText;
@@ -70,12 +83,23 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	private string HighScoreField {
+		get {
+			string tr = "HighScore";
+			if (mode != GameMode.NORMAL) {
+				tr += mode;
+			}
+			return tr;
+		}
+	}
+
 	public int HighScore {
 		get {
-			return PlayerPrefs.GetInt ("HighScore");
+			
+			return PlayerPrefs.GetInt (HighScoreField);
 		}
 		set {
-			PlayerPrefs.SetInt ("HighScore", value);
+			PlayerPrefs.SetInt (HighScoreField, value);
 			highScoreText.text = "High Score: "+value;
 			newHighScore = true;
 		}
@@ -121,6 +145,8 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	public GameMode mode;
+
 	public bool Running {
 		get {
 			return State == GameState.INGAME;
@@ -142,7 +168,17 @@ public class GameManager : MonoBehaviour
 		screenBottom = lowerLeft.y;
 		player.transform.localPosition = menuPlayerPosition;
 		State = GameState.MAIN_MENU;
-		highScoreText.text = "High Score: " + HighScore;
+		int y = 0;
+		foreach(GameMode mode in Enum.GetValues(typeof(GameMode))) {
+			GameObject obj = Instantiate (modeButtonPrefab);
+			ModeButton btn = obj.GetComponent<ModeButton> ();
+			btn.mode = mode;
+			obj.transform.SetParent(modeMenu.transform, false);
+			RectTransform rectTransform = (RectTransform)obj.transform;
+			obj.transform.localPosition = new Vector3 (0, y*rectTransform.rect.height*1.5f, 0);
+			//rectTransform.sizeDelta = new Vector2 (80, 1);
+			y--;
+		}
 		//HighScore = 0;
 	}
 	
@@ -188,6 +224,16 @@ public class GameManager : MonoBehaviour
 		return tr;
 	}
 
+	private float keyTiltY ()
+	{
+		float tr = 0;
+		if (Input.GetKey (KeyCode.DownArrow))
+			tr--;
+		if (Input.GetKey (KeyCode.UpArrow))
+			tr++;
+		return tr;
+	}
+
 	public void YouDied ()
 	{
 		if (State == GameState.INGAME) {
@@ -195,12 +241,21 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public void StartGame ()
+	public void StartGame() {
+		if (mode == null) {
+			mode = GameMode.NORMAL;
+		}
+		StartGame (mode);
+	}
+
+	public void StartGame (GameMode mode)
 	{
+		this.mode = mode;
 		State = GameState.GAME_STARTING;
 		Score = 0;
 		Platform.ClearPlatforms ();
 		newHighScore = false;
+		highScoreText.text = "High Score: " + HighScore;
 	}
 
 	public void SwitchState(string state) {

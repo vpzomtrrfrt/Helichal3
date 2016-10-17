@@ -63,7 +63,7 @@ public class Platform : MonoBehaviour {
 		float screenWidth = GameManager.instance.width;
 		if (platforms.Count > 0) {
 			Platform lastPlatform = platforms [platforms.Count - 1];
-			if (lastPlatform.transform.position.y < GameManager.instance.screenTop) {
+			if (lastPlatform.transform.position.y < Math.Max(GameManager.instance.screenTop, GameManager.instance.player.transform.position.y)) {
 				float npx = UnityEngine.Random.value * screenWidth * 2 / 3 - screenWidth / 2 + screenWidth / 6;
 				float dsc = (GameManager.instance.Score + platforms.Count) / 200;
 				float dist = Math.Abs (npx - lastPlatform.x);
