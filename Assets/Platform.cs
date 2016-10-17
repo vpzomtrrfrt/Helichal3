@@ -32,6 +32,8 @@ public class Platform : MonoBehaviour {
 
 	private float y;
 
+	private float xv = 1;
+
 	void Awake() {
 		platforms.Add (this);
 	}
@@ -47,12 +49,20 @@ public class Platform : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if (GameManager.instance.Running) {
-			y -= speed;
+			y -= speed*Player.Speed;
 			transform.localPosition = new Vector3 (transform.position.x, y, transform.position.z);
 			if (y + transform.localScale.y / 2 < GameManager.instance.screenBottom) {
 				Destroy (gameObject);
 				GameManager.instance.Score++;
 				platforms.Remove (this);
+			}
+			if (GameManager.instance.mode == GameManager.GameMode.MOTION) {
+				x += xv*speed*Player.Speed;
+				if (x > GameManager.instance.width /3) {
+					xv = -Math.Abs (xv);
+				} else if (x < -GameManager.instance.width/3) {
+					xv = Math.Abs (xv);
+				}
 			}
 		}
 	}
@@ -68,7 +78,7 @@ public class Platform : MonoBehaviour {
 				float dsc = (GameManager.instance.Score + platforms.Count) / 200;
 				float dist = Math.Abs (npx - lastPlatform.x);
 				float playerPart = 1 - dsc / 10;
-				float distPart = dist / (Player.SPEED * 5);
+				float distPart = dist / (Player.Speed * 5);
 				float randomPart = UnityEngine.Random.value / 6;
 				Platform platform = Create ();
 				float nph = lastPlatform.transform.position.y + Math.Max (platform.transform.localScale.y, Math.Min (playerPart + distPart + randomPart, 12));

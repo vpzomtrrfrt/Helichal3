@@ -3,7 +3,17 @@ using System.Collections;
 
 public class Player : MonoBehaviour {
 
-	public static float SPEED = 0.2f;
+	public static float baseSpeed = 0.2f;
+
+	public static float Speed {
+		get {
+			float tr = baseSpeed;
+			if (GameManager.instance.mode == GameManager.GameMode.LIGHTNING) {
+				tr *= 2;
+			}
+			return tr;
+		}
+	}
 
 	public GameObject eyes;
 	public GameObject deadEyes;
@@ -19,9 +29,9 @@ public class Player : MonoBehaviour {
 			float tilt = GameManager.instance.Tilt;
 			float x = transform.position.x;
 			float y = transform.position.y;
-			x += tilt * SPEED;
+			x += tilt * Speed;
 			if (GameManager.instance.mode == GameManager.GameMode.FREE_FLY) {
-				y += GameManager.instance.TiltY * SPEED;
+				y += GameManager.instance.TiltY * Speed;
 			}
 			float screenWidth = GameManager.instance.width;
 			if (x < transform.localScale.x / 2 - screenWidth / 2) {

@@ -11,7 +11,16 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 	// Use this for initialization
 	void Start () {
 		string modeName = mode.ToString ();
-		modeName = modeName [0] + modeName.Substring (1).ToLower ()+" Mode";
+		int di = -1;
+		do {
+			string newname = "";
+			if (di > -1) {
+				newname += modeName.Substring (0, di) + " ";
+			}
+			newname += modeName.Substring (di + 1, 1).ToUpper() + modeName.Substring (di + 2).ToLower ();
+			modeName = newname;
+			di = modeName.IndexOf ("_");
+		} while(di > -1);
 		text.text = modeName;
 		GetComponent<Image> ().color = colorForMode (mode);
 	}
@@ -25,6 +34,10 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 		switch (mode) {
 		case GameManager.GameMode.FREE_FLY:
 			return Color.red;
+		case GameManager.GameMode.LIGHTNING:
+			return Color.yellow;
+		case GameManager.GameMode.MOTION:
+			return Color.blue;
 		default:
 			return Color.black;
 		}

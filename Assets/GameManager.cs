@@ -16,7 +16,9 @@ public class GameManager : MonoBehaviour
 
 	public enum GameMode {
 		NORMAL,
-		FREE_FLY
+		FREE_FLY,
+		LIGHTNING,
+		MOTION
 	}
 
 	public static GameManager instance;
@@ -242,9 +244,6 @@ public class GameManager : MonoBehaviour
 	}
 
 	public void StartGame() {
-		if (mode == null) {
-			mode = GameMode.NORMAL;
-		}
 		StartGame (mode);
 	}
 
