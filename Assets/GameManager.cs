@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using GoogleMobileAds.Api;
 
 public class GameManager : MonoBehaviour
 {
@@ -188,6 +189,14 @@ public class GameManager : MonoBehaviour
 			y--;
 		}
 		//HighScore = 0;
+
+		#if UNITY_ANDROID
+		string adUnitId = "ca-app-pub-8192472098497743/5140228512";
+		#else
+		string adUnitId = "unknown";
+		#endif
+		BannerView bannerView = new BannerView (adUnitId, AdSize.Banner, AdPosition.Top);
+		bannerView.LoadAd (new AdRequest.Builder ().Build ());
 	}
 	
 	// Update is called once per frame
