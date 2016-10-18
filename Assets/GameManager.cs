@@ -196,7 +196,10 @@ public class GameManager : MonoBehaviour
 		string adUnitId = "unknown";
 		#endif
 		BannerView bannerView = new BannerView (adUnitId, AdSize.Banner, AdPosition.Top);
-		bannerView.LoadAd (new AdRequest.Builder ().Build ());
+		bannerView.LoadAd (new AdRequest.Builder ()
+			.AddTestDevice("D6E9B15B0D496F6F6A96A6A7EE5F0EAF")
+			.AddTestDevice(AdRequest.TestDeviceSimulator)
+			.Build ());
 	}
 	
 	// Update is called once per frame
