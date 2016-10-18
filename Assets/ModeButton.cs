@@ -21,7 +21,9 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 			modeName = newname;
 			di = modeName.IndexOf ("_");
 		} while(di > -1);
+		modeName += " Mode";
 		text.text = modeName;
+		text.color = Color.white;
 		GetComponent<Image> ().color = colorForMode (mode);
 	}
 	

@@ -104,6 +104,7 @@ public class GameManager : MonoBehaviour
 			PlayerPrefs.SetInt (HighScoreField, value);
 			highScoreText.text = "High Score: "+value;
 			newHighScore = true;
+			PlayerPrefs.Save ();
 		}
 	}
 
@@ -170,7 +171,7 @@ public class GameManager : MonoBehaviour
 		screenBottom = lowerLeft.y;
 		player.transform.localPosition = menuPlayerPosition;
 		State = GameState.MAIN_MENU;
-		int y = 0;
+		int y = 1;
 		foreach(GameMode mode in Enum.GetValues(typeof(GameMode))) {
 			GameObject obj = Instantiate (modeButtonPrefab);
 			ModeButton btn = obj.GetComponent<ModeButton> ();
