@@ -11,7 +11,8 @@ public class GameManager : MonoBehaviour
 		MODE_MENU,
 		INGAME,
 		DIED,
-		MAIN_MENU
+		MAIN_MENU,
+		PAUSED
 	}
 
 	public enum GameMode {
@@ -41,6 +42,8 @@ public class GameManager : MonoBehaviour
 	public GameObject mainMenu;
 	public GameObject modeMenu;
 	public GameObject gameOverlay;
+	public GameObject youDiedText;
+	public GameObject pausedText;
 
 	public GameObject modeButtonPrefab;
 
@@ -117,7 +120,7 @@ public class GameManager : MonoBehaviour
 		set {
 			lastState = State;
 			_state = value;
-			if (value == GameState.DIED) {
+			if (value == GameState.DIED || value == GameState.PAUSED) {
 				deathMenu.SetActive (true);
 				if (newHighScore) {
 					deathScoreText.text = "NEW HIGH SCORE: " + Score;
@@ -126,6 +129,8 @@ public class GameManager : MonoBehaviour
 					deathScoreText.text = "Score: " + Score;
 					deathScoreText.color = Color.black;
 				}
+				youDiedText.SetActive (value == GameState.DIED);
+				pausedText.SetActive (value == GameState.PAUSED);
 			} else {
 				deathMenu.SetActive (false);
 			}
@@ -214,6 +219,18 @@ public class GameManager : MonoBehaviour
 			lerpTo (new Vector3 (-((RectTransform)mainMenu.transform).rect.width, 0, 0), mainMenu.transform, gameStartSpeed);
 			lerpTo (Vector3.zero, modeMenu.transform, gameStartSpeed);
 		}
+		if (Input.GetKeyDown(KeyCode.Escape)) {
+			switch (State) {
+			case GameState.DIED:
+			case GameState.GAME_STARTING:
+			case GameState.MODE_MENU:
+				State = GameState.MAIN_MENU;
+				break;
+			case GameState.INGAME:
+				State = GameState.PAUSED;
+				break;
+			}
+		}
 		lastFrameTime = Time.time;
 	}
 
@@ -245,7 +262,11 @@ public class GameManager : MonoBehaviour
 	}
 
 	public void StartGame() {
-		StartGame (mode);
+		if (State == GameState.PAUSED) {
+			State = GameState.INGAME;
+		} else {
+			StartGame (mode);
+		}
 	}
 
 	public void StartGame (GameMode mode)
@@ -285,5 +306,11 @@ public class GameManager : MonoBehaviour
 		transform.localPosition = Vector3.Lerp (transform.localPosition, position, toPass);
 		transform.localScale = Vector3.Lerp (transform.localScale, scale, toPass);
 		return t;
+	}
+
+	public void OnApplicationPause(bool paused) {
+		if (State == GameState.INGAME) {
+			State = GameState.PAUSED;
+		}
 	}
 }
