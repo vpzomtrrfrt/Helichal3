@@ -6,3 +6,5 @@ obj
 *.apk
 *.userprefs
 ProjectSettings/GoogleAarExplodeCache.xml
+Assets/Plugins/Editor*
+.idea

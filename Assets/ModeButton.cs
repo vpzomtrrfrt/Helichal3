@@ -7,6 +7,7 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 
 	public GameManager.GameMode mode;
 	public Text text;
+    public bool forCustom;
 
 	// Use this for initialization
 	void Start () {
@@ -22,12 +23,21 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 			di = modeName.IndexOf ("_");
 		} while(di > -1);
 		modeName += " Mode";
+	    if (forCustom)
+	    {
+	        modeName += GetPunctuation();
+	    }
 		text.text = modeName;
 		text.color = Color.white;
 		GetComponent<Image> ().color = colorForMode (mode);
 	}
-	
-	// Update is called once per frame
+
+    private string GetPunctuation()
+    {
+        return GameManager.instance.customModes.Contains(mode)?"!":"?";
+    }
+
+    // Update is called once per frame
 	void Update () {
 	
 	}
@@ -45,12 +55,23 @@ public class ModeButton : MonoBehaviour, IPointerClickHandler {
 		}
 	}
 
-	#region IPointerClickHandler implementation
-
-	public void OnPointerClick (PointerEventData eventData)
+    public void OnPointerClick (PointerEventData eventData)
 	{
-		GameManager.instance.StartGame (mode);
+	    if (forCustom)
+	    {
+	        if (!GameManager.instance.customModes.Remove(mode))
+	        {
+	            GameManager.instance.customModes.Add(mode);
+	        }
+	        text.text = text.text.Substring(0, text.text.Length - 1) + GetPunctuation();
+	    }
+	    else if (mode == GameManager.GameMode.CUSTOM)
+	    {
+	        GameManager.instance.State = GameManager.GameState.CUSTOM_MENU;
+	    }
+	    else
+	    {
+	        GameManager.instance.StartGame(mode);
+	    }
 	}
-
-	#endregion
 }

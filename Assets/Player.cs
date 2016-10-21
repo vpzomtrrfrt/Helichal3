@@ -8,7 +8,7 @@ public class Player : MonoBehaviour {
 	public static float Speed {
 		get {
 			float tr = baseSpeed;
-			if (GameManager.instance.mode == GameManager.GameMode.LIGHTNING) {
+			if (GameManager.instance.IsModeEffective(GameManager.GameMode.LIGHTNING)) {
 				tr *= 2;
 			}
 			return tr;
@@ -30,7 +30,7 @@ public class Player : MonoBehaviour {
 			float x = transform.position.x;
 			float y = transform.position.y;
 			x += tilt * Speed;
-			if (GameManager.instance.mode == GameManager.GameMode.FREE_FLY) {
+			if (GameManager.instance.IsModeEffective(GameManager.GameMode.FREE_FLY)) {
 				y += GameManager.instance.TiltY * Speed;
 			}
 			float screenWidth = GameManager.instance.width;

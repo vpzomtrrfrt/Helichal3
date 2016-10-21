@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine.UI;
 using System;
 using GoogleMobileAds.Api;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,14 +14,16 @@ public class GameManager : MonoBehaviour
 		INGAME,
 		DIED,
 		MAIN_MENU,
-		PAUSED
+		PAUSED,
+	    CUSTOM_MENU
 	}
 
 	public enum GameMode {
 		NORMAL,
 		FREE_FLY,
 		LIGHTNING,
-		MOTION
+		MOTION,
+	    CUSTOM
 	}
 
 	public static GameManager instance;
@@ -42,6 +45,7 @@ public class GameManager : MonoBehaviour
 	public GameObject deathMenu;
 	public GameObject mainMenu;
 	public GameObject modeMenu;
+    public GameObject customModeMenu;
 	public GameObject gameOverlay;
 	public GameObject youDiedText;
 	public GameObject pausedText;
@@ -74,6 +78,8 @@ public class GameManager : MonoBehaviour
 
 	private float lastFrameTime;
 
+	public IList<GameMode> customModes = new List<GameMode>();
+
 	private int _score = 0;
 
 	public int Score {
@@ -93,7 +99,7 @@ public class GameManager : MonoBehaviour
 		get {
 			string tr = "HighScore";
 			if (mode != GameMode.NORMAL) {
-				tr += mode;
+				tr += ModeName(mode);
 			}
 			return tr;
 		}
@@ -137,24 +143,40 @@ public class GameManager : MonoBehaviour
 			}
 			player.deadEyes.SetActive (value == GameState.DIED);
 			player.eyes.SetActive (value != GameState.DIED);
-			if (value == GameState.INGAME) {
-				gameOverlay.SetActive (true);
-			} else {
-				gameOverlay.SetActive (false);
-			}
-			if (value == GameState.MAIN_MENU) {
+		    gameOverlay.SetActive(value == GameState.INGAME);
+		    if (value == GameState.MAIN_MENU) {
 				Platform.ClearPlatforms ();
 				if(lastState != GameState.MODE_MENU) {
 					modeMenu.transform.localPosition = new Vector3 (((RectTransform)modeMenu.transform).rect.width, 0, 0);
 				}
+		        if (lastState != GameState.CUSTOM_MENU)
+		        {
+		            customModeMenu.transform.localPosition = new Vector3(((RectTransform)customModeMenu.transform).rect.width, 0, 0);
+		        }
 			}
 			mainMenu.SetActive (value == GameState.MAIN_MENU || value == GameState.MODE_MENU);
-			modeMenu.SetActive (value == GameState.MAIN_MENU || value == GameState.MODE_MENU);
+			modeMenu.SetActive (value == GameState.MAIN_MENU || value == GameState.MODE_MENU || value == GameState.CUSTOM_MENU);
+		    customModeMenu.SetActive(value == GameState.MAIN_MENU || value == GameState.CUSTOM_MENU);
 			lastStateSwitch = Time.time;
 		}
 	}
 
 	public GameMode mode;
+
+	public string ModeName(GameMode mode) {
+	    string tr = mode.ToString();
+	    if (mode == GameMode.CUSTOM)
+	    {
+	        foreach (GameMode aMode in Enum.GetValues(typeof(GameMode)))
+	        {
+	            if (customModes.Contains(aMode))
+	            {
+	                tr += ModeName(aMode);
+	            }
+	        }
+	    }
+	    return tr;
+	}
 
 	public bool Running {
 		get {
@@ -178,15 +200,14 @@ public class GameManager : MonoBehaviour
 		player.transform.localPosition = menuPlayerPosition;
 		State = GameState.MAIN_MENU;
 		int y = 1;
-		foreach(GameMode mode in Enum.GetValues(typeof(GameMode))) {
-			GameObject obj = Instantiate (modeButtonPrefab);
-			ModeButton btn = obj.GetComponent<ModeButton> ();
-			btn.mode = mode;
-			obj.transform.SetParent(modeMenu.transform, false);
-			RectTransform rectTransform = (RectTransform)obj.transform;
-			obj.transform.localPosition = new Vector3 (0, y*rectTransform.rect.height*1.5f, 0);
-			//rectTransform.sizeDelta = new Vector2 (80, 1);
-			y--;
+		foreach(GameMode mode in Enum.GetValues(typeof(GameMode)))
+		{
+		    AddModeButton(mode, modeMenu.transform, y);
+		    if (mode != GameMode.CUSTOM && mode != GameMode.NORMAL)
+		    {
+		        AddModeButton(mode, customModeMenu.transform, y);
+		    }
+		    y--;
 		}
 		//HighScore = 0;
 
@@ -201,8 +222,22 @@ public class GameManager : MonoBehaviour
 			.AddTestDevice(AdRequest.TestDeviceSimulator)
 			.Build ());
 	}
-	
-	// Update is called once per frame
+
+    private void AddModeButton(GameMode mode, Transform parent, int y)
+    {
+        GameObject obj = Instantiate (modeButtonPrefab);
+        ModeButton btn = obj.GetComponent<ModeButton> ();
+        btn.mode = mode;
+        if (parent.gameObject == customModeMenu)
+        {
+            btn.forCustom = true;
+        }
+        obj.transform.SetParent(parent, false);
+        RectTransform rectTransform = (RectTransform)obj.transform;
+        obj.transform.localPosition = new Vector3 (0, y*rectTransform.rect.height*1.5f, 0);
+    }
+
+    // Update is called once per frame
 	void Update ()
 	{
 		if (lastFrameTime == 0) {
@@ -211,16 +246,17 @@ public class GameManager : MonoBehaviour
 		if (Running) {
 			Platform.Generate ();
 		} else if (State == GameState.MAIN_MENU) {
-			RectTransform transform = titleText.GetComponent<RectTransform> ();
-			if (transform.position.x < -2) {
+			RectTransform titleTrans = titleText.GetComponent<RectTransform> ();
+			if (titleTrans.position.x < -2) {
 				titleTextSpeed = Mathf.Abs (titleTextSpeed);
-			} else if (transform.position.x > 2) {
+			} else if (titleTrans.position.x > 2) {
 				titleTextSpeed = -Mathf.Abs (titleTextSpeed);
 			}
-			transform.position += new Vector3 (titleTextSpeed, 0);
+			titleTrans.position += new Vector3 (titleTextSpeed, 0);
 			lerpTo (menuPlayerPosition, menuPlayerScale, player.transform);
 			lerpTo (Vector3.zero, mainMenu.transform, gameStartSpeed);
 			lerpTo (new Vector3 (((RectTransform)modeMenu.transform).rect.width, 0, 0), modeMenu.transform, gameStartSpeed);
+		    lerpTo (new Vector3 (((RectTransform)customModeMenu.transform).rect.width, 0, 0), customModeMenu.transform, gameStartSpeed);
 		} else if (State == GameState.GAME_STARTING) {
 			player.transform.localRotation = Quaternion.identity;
 			float time = lerpTo (startPlayerPosition, startPlayerScale, player.transform, lastState == GameState.MODE_MENU ? gameStartSpeed : gameStartSpeed / 3);
@@ -230,6 +266,11 @@ public class GameManager : MonoBehaviour
 		} else if (State == GameState.MODE_MENU) {
 			lerpTo (new Vector3 (-((RectTransform)mainMenu.transform).rect.width, 0, 0), mainMenu.transform, gameStartSpeed);
 			lerpTo (Vector3.zero, modeMenu.transform, gameStartSpeed);
+		}
+	    else if (State == GameState.CUSTOM_MENU)
+		{
+		    lerpTo(new Vector3(-((RectTransform) modeMenu.transform).rect.width, 0, 0), modeMenu.transform, gameStartSpeed);
+		    lerpTo(Vector3.zero, customModeMenu.transform, gameStartSpeed);
 		}
 		if (Input.GetKeyDown(KeyCode.Escape)) {
 			switch (State) {
@@ -273,6 +314,11 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+    public void StartCustomGame()
+    {
+        StartGame(GameMode.CUSTOM);
+    }
+
 	public void StartGame() {
 		if (State == GameState.PAUSED) {
 			State = GameState.INGAME;
@@ -289,6 +335,18 @@ public class GameManager : MonoBehaviour
 		Platform.ClearPlatforms ();
 		newHighScore = false;
 		highScoreText.text = "High Score: " + HighScore;
+	}
+
+	public bool IsModeEffective(GameMode mode) {
+	    if (mode == this.mode)
+	    {
+	        return true;
+	    }
+	    if (this.mode == GameMode.CUSTOM)
+	    {
+	        return customModes.Contains(mode);
+	    }
+	    return false;
 	}
 
 	public void SwitchState(string state) {

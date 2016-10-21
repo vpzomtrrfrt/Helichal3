@@ -56,7 +56,7 @@ public class Platform : MonoBehaviour {
 				GameManager.instance.Score++;
 				platforms.Remove (this);
 			}
-			if (GameManager.instance.mode == GameManager.GameMode.MOTION) {
+			if (GameManager.instance.IsModeEffective(GameManager.GameMode.MOTION)) {
 				x += xv*speed*Player.Speed;
 				if (x > GameManager.instance.width /3) {
 					xv = -Math.Abs (xv);
